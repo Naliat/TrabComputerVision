@@ -1,7 +1,7 @@
 # Pose Landmarker com MediaPipe
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](
-https://colab.research.google.com/github/SEU_USUARIO/SEU_REPOSITORIO/blob/main/Pose_Landmarker.ipynb
+https://colab.research.google.com/github/Naliat/TrabComputerVision/blob/main/Pose_Landmarker.ipynb
 )
 
 ## Objetivo
