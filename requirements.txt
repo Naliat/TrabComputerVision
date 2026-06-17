@@ -1,0 +1,8 @@
+# Biblioteca principal do YOLOv8 (inclui PyTorch, NumPy, etc.)
+ultralytics>=8.0.0
+
+# Biblioteca para manipulação de imagem e webcam
+opencv-python>=4.8.0
+
+# (Opcional) Caso você queira deixar o MediaPipe no projeto como alternativa
+# mediapipe>=0.10.0
