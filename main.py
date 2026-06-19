@@ -1,10 +1,8 @@
 from ultralytics import YOLO
 import cv2
 
-# 1. Carrega o modelo pré-treinado de pose 
 modelo = YOLO('yolov8n-pose.pt') 
 
-# 2. Inicia a captura da webcam
 cap = cv2.VideoCapture(0)
 
 print("Iniciando a detecção. Pressione 'q' na janela do vídeo para sair.")
@@ -15,41 +13,53 @@ while cap.isOpened():
         print("Falha ao capturar a webcam.")
         break
 
-    resultados = modelo(frame)
+    resultados = modelo(frame,verbose=False)
 
     for r in resultados:
         frame_anotado = r.plot()
 
         if r.keypoints is not None and len(r.keypoints.data) > 0:
-            
             pontos = r.keypoints.data[0] 
 
-            if len(pontos) >= 6:
-                x_nariz, y_nariz, conf_nariz = pontos[0]
-                x_ombro, y_ombro, conf_ombro = pontos[5]
+            if len(pontos) >= 7:
+                # Extrai Nariz (0), Ombro Esquerdo (5) e Ombro Direito (6)
+                x_n, y_n, c_n = pontos[0]
+                x_o_esq, y_o_esq, c_o_esq = pontos[5]
+                x_o_dir, y_o_dir, c_o_dir = pontos[6] 
 
-                y_n = float(y_nariz)
-                y_o = float(y_ombro)
-                c_n = float(conf_nariz)
-                c_o = float(conf_ombro)
+                # Transforma tudo em float
+                y_n, y_o_esq, y_o_dir = float(y_n), float(y_o_esq), float(y_o_dir)
+                x_o_esq, x_o_dir = float(x_o_esq), float(x_o_dir)
+                c_n, c_o_esq, c_o_dir = float(c_n), float(c_o_esq), float(c_o_dir)
 
-                if c_n > 0.5 and c_o > 0.5:
+                alerta = ""
+
+                if c_n > 0.5 and c_o_esq > 0.5 and c_o_dir > 0.5:
                     
-                    # LÓGICA DE NEGÓCIO: Avaliação de Postura
-                    if y_n > y_o:
-                        print(f"Alerta: Cabeça baixa! (Y do Nariz: {y_n:.1f} | Y do Ombro: {y_o:.1f})")
+                    # ALERTA 1: 
+                    if (y_o_esq - y_n) < 90:
+                        alerta = "Cabeca Baixa!"
+                    
+                    # ALERTA 2
+                    elif abs(y_o_esq - y_o_dir) > 20:
+                        alerta = "Ombros Desalinhados!"
                         
-                        cv2.putText(
-                            frame_anotado, 
-                            "ALERTA: Postura Incorreta!", 
-                            (20, 50),
-                            cv2.FONT_HERSHEY_SIMPLEX, 
-                            1, 
-                            (0, 0, 255), 
-                            3 
-                        )
+                    # ALERTA 3
+                    elif abs(x_o_esq - x_o_dir) > 350:
+                        alerta = "Muito perto da tela!"
 
-    cv2.imshow('YOLOv8 Pose Detection', frame_anotado)
+                if alerta != "":
+                    cv2.putText(
+                        frame_anotado, 
+                        f"ALERTA: {alerta}", 
+                        (20, 50), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 
+                        1, 
+                        (0, 0, 255), 
+                        3 
+                    )
+
+    cv2.imshow('YOLOv8 Pose Detection - Apresentacao', frame_anotado)
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
